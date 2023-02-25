@@ -1,0 +1,84 @@
+[1] First Steps
+	- npx create-next-app@latest --experimental-app\
+		- Select the following: (TypeScript YES, Eslint YES, Default folder to 'src' NO, default import alias )
+
+[2] Installing Tailwind CSS
+	- npm install -D tailwindcss postcss autoprefixer
+	- npx tailwindcss init -p
+	- IN tailwind.config.js:
+	content: [
+    "./app/**/*.{js,ts,jsx,tsx}",
+    "./pages/**/*.{js,ts,jsx,tsx}",
+    "./components/**/*.{js,ts,jsx,tsx}",
+ 
+    // Or if using `src` directory:
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+
+	- IN globals.css
+	@tailwind base;
+	@tailwind components;
+	@tailwind utilities;
+
+
+[3] Prisma Setup
+	- npm install prisma typescript ts-node @types/node --save-dev
+	- npx prisma init
+	- IN .env (file generated on setting up prisma)
+		// This is just a sample database connection url
+		// You can get url when setting up a db at either supabase or railway
+		DATABASE_URL="postgresql://johndoe:randompassword@localhost:5432/mydb?schema=public"
+
+	- IN client.js
+		import {PrismaClient} from '@prisma/client'
+
+			// Create a prisma client
+			const client = globalThis.prisma || new PrismaClient() 
+			// If a client already exists, do not instantiate another client
+			if(process.env.NODE_ENV !== "production") globalThis.prisma = client
+
+			export default client
+
+	- npx prisma migrate dev = Push DB model to an existing DB service (supabase or railway)
+
+[4] NextAuth Setup
+	- npm install next-auth
+	- npm i @next-auth/prisma-adapter
+	- Go to Google Cloud Console/API&Services/Credentials
+		- Create OAuth client ID
+		- URIs 1 = http://localhost:3000
+		- Redirect URIs = http://localhost:3000/api/auth/callback/google
+		
+	- IN .env.local
+		//Credentials provided by Google Cloud console when creating OAuth client ID
+		GOOGLE_CLIENT_ID= 
+		GOOGLE_CLIENT_SECRET=
+		//Create your own secret (just type random things)
+		AUTH_SECRET=
+
+	- IN app/api/auth/[...nextauth].js
+		import NextAuth from "next-auth"
+		import GoogleProvider from "next-auth/providers/google"
+		import { PrismaAdapter } from "@next-auth/prisma-adapter"
+		import prisma from '../../../prisma/client'
+
+		export const authOptions = {
+			adapter: PrismaAdapter(prisma),
+			secret: process.env.AUTH_SECRET,
+			providers: [
+				GoogleProvider({
+					clientId: process.env.GOOGLE_CLIENT_ID,
+					clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+				}),
+			],
+		}
+
+		export default NextAuth(authOptions)
+
+
+[5] React Query and Axios
+	- npm i axios
+	- npm i @tanstack/react-query
+
+[6] Popups
+	- npm i react-hot-toast
